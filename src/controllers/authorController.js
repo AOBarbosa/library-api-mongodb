@@ -1,9 +1,10 @@
-import { author } from "../models/Author.js"
+// import { author } from "../models/Author.js"
+import prisma from "../prisma.js"
 
 class AuthorController {
   static async listAuthors(req, res) {
     try {
-      const authorsList = await author.find({})
+      const authorsList = await authors.find({})
   
       res.status(200).json(authorsList)
     } catch (error) {
@@ -14,7 +15,7 @@ class AuthorController {
   static async listAuthorById(req, res) {
     try {
       const id = req.params.id
-      const foundAuthor = await author.findById(id)
+      const foundAuthor = await authors.findById(id)
   
       res.status(200).json(foundAuthor)
     } catch (error) {
@@ -24,7 +25,7 @@ class AuthorController {
 
   static async registerAuthor(req, res) {
     try {
-      const newAuthor = await author.create(req.body)
+      const newAuthor = await authors.create(req.body)
 
       res.status(201).json({ message: "Autor Criado!", authors: newAuthor })
     } catch (err) {
@@ -35,7 +36,7 @@ class AuthorController {
   static async updateAuthorById(req, res) {
     try {
       const id = req.params.id
-      await author.findByIdAndUpdate(id, req.body)
+      await authors.findByIdAndUpdate(id, req.body)
   
       res.status(200).json({ message: 'Author updated successfully' })
     } catch (error) {
@@ -46,7 +47,7 @@ class AuthorController {
   static async deleteAuthorById(req, res) {
     try {
       const id = req.params.id
-      await author.findByIdAndDelete(id)
+      await authors.findByIdAndDelete(id)
 
       res.status(200).json({ message: "Autor removido!" })
     } catch (error) {

@@ -1,10 +1,15 @@
-import { author } from "../models/Author.js"
-import book from "../models/Book.js"
+// import { author } from "../models/Author.js"
+// import book from "../models/Book.js"
+import prisma from "../prisma.js"
 
 class BookController {
   static async listBooks(req, res) {
     try {
-      const bookList = await book.find({})
+      const bookList = await prisma.books.findMany({
+        include: {
+          author: true
+        }
+      })
   
       res.status(200).json(bookList)
     } catch (error) {
@@ -13,22 +18,41 @@ class BookController {
   }
 
   static async listBookById(req, res) {
+    const { id } = req.params
+
     try {
-      const id = req.params.id
-      const foundBook = await book.findById(id)
+      const book = await prisma.books.findById(id)
+
+      // !book && return res.status(404).json({ message: 'Book not found' })
   
-      res.status(200).json(foundBook)
+      if (!book) return res.status(404).json({ message: 'Book not found' })
+  
+      return res.status(200).json(book)
+
+
+      // const id = req.params.id
+      // const foundBook = await books.findById(id)
+  
+      // res.status(200).json(foundBook)
     } catch (error) {
       res.status(500).json({ message: `${error.message} - falha na requisicao do livro` })
     }
   }
 
   static async registerBook(req, res) {
-    const newBook = req.body
+    const { title, editor, pages, price, author } = req.body
     try {
-      const founAuthor = await author.findById(newBook.author)
-      const completeBook = { ...newBook, author: { ...founAuthor._doc } }
-      const createdBook = await book.create(completeBook)
+      const foundAuthor = await prisma.authors.findUnique(author.name)
+      // const completeBook = { ...newBook, author: { ...foundAuthor._doc } }
+      const createdBook = await prisma.books.create({
+        data: {
+          title,
+          editor,
+          pages,
+          price,
+          author: (foundAuthor !== null) ?  { ...foundAuthor } : { author }
+        }
+      }) 
 
       res.status(201).json({ message: "Livro Cirado!", book: createdBook })
     } catch (err) {
@@ -39,7 +63,7 @@ class BookController {
   static async updateBookById(req, res) {
     try {
       const id = req.params.id
-      await book.findByIdAndUpdate(id, req.body)
+      await books.findByIdAndUpdate(id, req.body)
   
       res.status(200).json({ message: 'Book updated successfully' })
     } catch (error) {
@@ -50,7 +74,7 @@ class BookController {
   static async deleteBookById(req, res) {
     try {
       const id = req.params.id
-      await book.findByIdAndDelete(id)
+      await books.findByIdAndDelete(id)
 
       res.status(200).json({ message: "Livro removido!" })
     } catch (error) {
@@ -62,7 +86,7 @@ class BookController {
     const editor = req.query.editor
 
     try {
-      const booksByEditor = await book.find({ editor: editor })
+      const booksByEditor = await books.find({ editor: editor })
 
       res.status(200).json(booksByEditor)
     } catch (error) {
